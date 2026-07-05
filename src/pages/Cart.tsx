@@ -24,7 +24,6 @@ const Cart = () => {
 
   const { user } = useContext(AuthContext);
 
-  // Modal de paiement
   const [showPaymentModal, setShowPaymentModal] =
     useState(false);
 
@@ -39,7 +38,9 @@ const Cart = () => {
     0
   );
 
-  // Validation finale
+  // ===============================
+  // PAIEMENT NABOOPAY
+  // ===============================
   const handleCheckout = async (
     paymentMethod: string
   ) => {
@@ -55,25 +56,62 @@ const Cart = () => {
     }
 
     try {
-      await api.post("/cart/checkout", {
-        userId: user.id,
-        paymentMethod,
-      });
+      console.log("USER =", user);
+console.log("PHONE =", user.telephone);
+      const response = 
+   await api.post("/payment/create",{
 
-      toast.success(
-        `Commande validée via ${paymentMethod}`
+userId:user.id,
+
+customerName: user.telephone,
+
+phone:user.telephone,
+
+amount:total,
+
+paymentMethod,
+
+cart
+
+});
+
+
+      if (!response.data.checkout_url) {
+        toast.error(
+          "Impossible de créer le paiement."
+        );
+        return;
+      }
+
+      // Sauvegarder la commande
+     localStorage.setItem(
+  "cart",
+  JSON.stringify(cart)
+);
+
+localStorage.setItem(
+  "nabooOrderId",
+  response.data.order_id
+);
+
+      localStorage.setItem(
+        "userId",
+        String(user.id)
       );
 
-      clearCart();
+      localStorage.setItem(
+        "paymentMethod",
+        paymentMethod
+      );
 
-      setShowPaymentModal(false);
-
-      navigate("/");
+      // Redirection NabooPay
+      window.location.href =
+        response.data.checkout_url;
     } catch (error) {
       console.log(error);
 
       toast.error(
-        "Erreur lors de la commande"
+        "Erreur lors de la création du paiement."
       );
     }
   };
@@ -93,8 +131,7 @@ const Cart = () => {
             Mon Panier
           </h1>
         </div>
-
-        {/* PANIER VIDE */}
+                {/* PANIER VIDE */}
         {cart.length === 0 ? (
           <div className="bg-white rounded-3xl shadow-lg p-10 text-center">
             <h2 className="text-3xl font-bold text-gray-700">
@@ -115,18 +152,21 @@ const Cart = () => {
         ) : (
           <div className="grid lg:grid-cols-3 gap-8">
 
-            {/* LISTE */}
+            {/* LISTE DES PLATS */}
             <div className="lg:col-span-2 space-y-6">
+
               {cart.map((item) => (
+
                 <div
                   key={item.id}
-                  className="bg-white rounded-3xl shadow-lg flex flex-col md:flex-row"
+                  className="bg-white rounded-3xl shadow-lg flex flex-col md:flex-row overflow-hidden"
                 >
+
                   {/* IMAGE */}
                   <img
                     src={
                       item.imageUrl ||
-                      "https://via.placeholder.com/300"
+                      "https://via.placeholder.com/300x300?text=Food"
                     }
                     alt={item.name}
                     className="w-full md:w-52 h-52 object-cover"
@@ -143,14 +183,14 @@ const Cart = () => {
                       {item.description}
                     </p>
 
-                    {/* QUANTITE */}
+                    {/* Quantité */}
                     <div className="flex items-center gap-4 mt-6">
 
                       <button
                         onClick={() =>
                           decreaseQuantity(item.id)
                         }
-                        className="bg-gray-200 w-10 h-10 rounded-full flex items-center justify-center"
+                        className="bg-gray-200 hover:bg-gray-300 w-10 h-10 rounded-full flex items-center justify-center"
                       >
                         <FaMinus />
                       </button>
@@ -163,36 +203,37 @@ const Cart = () => {
                         onClick={() =>
                           addToCart(item)
                         }
-                        className="bg-orange-500 text-white w-10 h-10 rounded-full flex items-center justify-center"
+                        className="bg-orange-500 hover:bg-orange-600 text-white w-10 h-10 rounded-full flex items-center justify-center"
                       >
                         <FaPlus />
                       </button>
+
                     </div>
 
-                    {/* PRIX */}
-                    <h3 className="text-xl font-bold text-orange-500 mt-4">
-                      {item.price *
-                        item.quantity}{" "}
-                      FCFA
+                    {/* Prix */}
+                    <h3 className="text-xl font-bold text-orange-500 mt-5">
+                      {item.price * item.quantity} FCFA
                     </h3>
 
-                    {/* SUPPRIMER */}
+                    {/* Supprimer */}
                     <button
                       onClick={() =>
                         removeFromCart(item.id)
                       }
-                      className="mt-4 text-red-500 flex items-center gap-2"
+                      className="mt-5 text-red-500 hover:text-red-700 flex items-center gap-2"
                     >
                       <FaTrash />
                       Supprimer
                     </button>
 
                   </div>
-                </div>
-              ))}
-            </div>
 
-            {/* RESUME */}
+                </div>
+
+              ))}
+
+            </div>
+                        {/* RESUME */}
             <div className="bg-white p-6 rounded-3xl shadow-lg h-fit">
 
               <h2 className="text-2xl font-bold mb-6">
@@ -201,51 +242,31 @@ const Cart = () => {
 
               <div className="flex justify-between mb-3">
                 <span>Articles</span>
-
                 <span>{totalItems}</span>
               </div>
 
-              <div className="flex justify-between mb-3">
+              <div className="flex justify-between mb-6">
                 <span>Total</span>
 
-                <span className="text-orange-500 font-bold">
+                <span className="text-orange-500 font-bold text-xl">
                   {total} FCFA
                 </span>
               </div>
 
-              {/* OUVRIR MODAL */}
               <button
-                onClick={() => {
-                  if (cart.length === 0) {
-                    toast.error(
-                      "Votre panier est vide"
-                    );
-                    return;
-                  }
-
-                  if (!user) {
-                    toast.error(
-                      "Veuillez vous connecter"
-                    );
-
-                    navigate("/login");
-
-                    return;
-                  }
-
-                  setShowPaymentModal(true);
-                }}
-                className="w-full bg-orange-500 text-white py-3 rounded-xl mt-6"
+                onClick={() => setShowPaymentModal(true)}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-xl font-bold"
               >
-                Valider commande
+                Valider la commande
               </button>
 
               <button
                 onClick={clearCart}
-                className="w-full bg-gray-300 py-3 rounded-xl mt-3"
+                className="w-full bg-gray-300 hover:bg-gray-400 py-4 rounded-xl mt-3"
               >
-                Vider panier
+                Vider le panier
               </button>
+
             </div>
 
           </div>
@@ -255,44 +276,32 @@ const Cart = () => {
         {showPaymentModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
 
-            <div className="bg-white p-8 rounded-3xl shadow-2xl w-[400px]">
+            <div className="bg-white rounded-3xl p-8 w-[420px] shadow-2xl">
 
               <h2 className="text-3xl font-bold text-center mb-8">
-                Choisir un paiement
+                Choisissez votre moyen de paiement
               </h2>
 
-              <div className="space-y-4">
+              <button
+                onClick={() => handleCheckout("Wave")}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold text-lg mb-4"
+              >
+                💙 Payer avec Wave
+              </button>
 
-                <button
-                  onClick={() =>
-                    handleCheckout("Wave")
-                  }
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white py-4 rounded-2xl text-lg font-bold"
-                >
-                  💙 Payer avec Wave
-                </button>
+              <button
+                onClick={() => handleCheckout("Orange_Money")}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-xl font-bold text-lg mb-4"
+              >
+                🟠 Payer avec Orange Money
+              </button>
 
-                <button
-                  onClick={() =>
-                    handleCheckout(
-                      "Orange Money"
-                    )
-                  }
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-2xl text-lg font-bold"
-                >
-                  🟠 Payer avec Orange Money
-                </button>
-
-                <button
-                  onClick={() =>
-                    setShowPaymentModal(false)
-                  }
-                  className="w-full bg-gray-300 hover:bg-gray-400 py-4 rounded-2xl font-bold"
-                >
-                  Annuler
-                </button>
-
-              </div>
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="w-full bg-gray-300 hover:bg-gray-400 py-4 rounded-xl"
+              >
+                Annuler
+              </button>
 
             </div>
 

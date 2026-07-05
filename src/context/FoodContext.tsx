@@ -1,66 +1,66 @@
-import {
-  createContext,
-  useEffect,
-  useState,
-  ReactNode,
-} from "react"
+import { createContext, useEffect, useState } from "react";
+import api from "../api/axios";
 
-import api from "../api/axios"
+export const FoodContext = createContext({} as any);
 
-export interface Food {
-  id: number
-  name: string
-  price: number
-  imageUrl: string
-  description: string
-  soldOut: boolean
-}
+export const FoodProvider = ({ children }: any) => {
+  const [foods, setFoods] = useState([]);
 
-interface FoodContextType {
-  foods: Food[]
-  fetchFoods: () => void
-  deleteFood: (id: number) => void
-  toggleAvailability: (id: number) => void
-}
-
-export const FoodContext = createContext({} as FoodContextType)
-
-export const FoodProvider = ({ children }: { children: ReactNode }) => {
-  const [foods, setFoods] = useState<Food[]>([])
-
+  // Charger les plats
   const fetchFoods = async () => {
-    try {
-      const res = await api.get("/foods")
-      setFoods(res.data)
-    } catch (err) {
-      console.log(err)
-    }
-  }
+    const res = await api.get("/foods");
+    setFoods(res.data);
+  };
 
   useEffect(() => {
-    fetchFoods()
-  }, [])
+    fetchFoods();
+  }, []);
 
-  const deleteFood = async (id: number) => {
-    await api.delete(`/foods/${id}`)
-    fetchFoods()
-  }
+  // Ajouter
+  const addFood = async (food: any) => {
+    await api.post("/foods", food);
+    fetchFoods();
+  };
 
-  const toggleAvailability = async (id: number) => {
-    await api.patch(`/foods/${id}/toggle`)
-    fetchFoods()
-  }
+  // Modifier
+  const updateFood = async (
+    id: number,
+    food: any
+  ) => {
+    await api.put(`/foods/${id}`, food);
+    fetchFoods();
+  };
+
+  // Supprimer
+  const deleteFood = async (
+    id: number
+  ) => {
+    await api.delete(`/foods/${id}`);
+    fetchFoods();
+  };
+
+  // Disponible / Indisponible
+  const toggleFood = async (
+    id: number
+  ) => {
+    await api.patch(`/foods/${id}/toggle`);
+    fetchFoods();
+  };
 
   return (
-    <FoodContext.Provider
-      value={{
-        foods,
-        fetchFoods,
-        deleteFood,
-        toggleAvailability,
-      }}
-    >
-      {children}
-    </FoodContext.Provider>
-  )
-}
+  <FoodContext.Provider
+    value={{
+      foods,
+      fetchFoods,
+      addFood,
+      updateFood,
+      deleteFood,
+      toggleFood,
+    }}
+  >
+    {children}
+  </FoodContext.Provider>
+);
+};
+
+export default FoodProvider;

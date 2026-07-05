@@ -2,105 +2,92 @@ import {
   createContext,
   useState,
   useEffect,
-} from "react"
+} from "react";
 
-import type { ReactNode } from "react"
-
-
+import type { ReactNode } from "react";
 import api from "../api/axios";
 
 interface User {
-  telephone: string
+  id: number;
+  telephone: string;
 }
 
 interface AuthContextType {
-
-  user: User | null
+  user: User | null;
 
   login: (
     phone: string,
     password: string
-  ) => Promise<void>
+  ) => Promise<void>;
 
-  logout: () => void
+  logout: () => void;
 }
 
 export const AuthContext =
   createContext<AuthContextType>(
     {} as AuthContextType
-  )
+  );
 
 export const AuthProvider = ({
   children,
 }: {
-  children: ReactNode
+  children: ReactNode;
 }) => {
 
   const [user, setUser] =
-    useState<User | null>(null)
+    useState<User | null>(null);
 
   useEffect(() => {
-
     const savedUser =
-      localStorage.getItem("user")
+      localStorage.getItem("user");
 
     if (savedUser) {
-
-      setUser(
-        JSON.parse(savedUser)
-      )
+      setUser(JSON.parse(savedUser));
     }
-
-  }, [])
+  }, []);
 
   const login = async (
     phone: string,
     password: string
   ) => {
 
-    const res =
-      await api.post(
-        "/auth/login",
-        {
-          telephone: phone,
-          password,
-        }
-      )
+    const res = await api.post(
+      "/auth/login",
+      {
+        telephone: phone,
+        password,
+      }
+    );
 
-    const user =
-      res.data.user
+    const user: User = res.data.user;
 
     const token =
-      res.data.token
+      res.data.token;
 
-    setUser(user)
+    setUser(user);
 
     localStorage.setItem(
       "user",
       JSON.stringify(user)
-    )
+    );
 
     localStorage.setItem(
       "token",
       token
-    )
-  }
+    );
+
+    console.log("Utilisateur connecté :", user);
+  };
 
   const logout = () => {
 
-    setUser(null)
+    setUser(null);
 
-    localStorage.removeItem(
-      "user"
-    )
-
-    localStorage.removeItem(
-      "token"
-    )
-  }
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+  };
 
   return (
-
     <AuthContext.Provider
       value={{
         user,
@@ -108,9 +95,7 @@ export const AuthProvider = ({
         logout,
       }}
     >
-
       {children}
-
     </AuthContext.Provider>
-  )
-}
+  );
+};

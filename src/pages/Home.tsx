@@ -74,7 +74,7 @@ const Home = () => {
 
         <div className="grid md:grid-cols-3 gap-8">
 
-          {foods.map((food) => (
+          {foods.map((food: Food) => (
 
             <div
               key={food.id}

@@ -19,17 +19,17 @@ const Dashboard = () => {
   const { foods } = useContext(FoodContext);
 
   const revenue = orders.reduce(
-    (acc, order) => acc + order.total,
+    (acc: number, order: any) => acc + order.total,
     0
   );
 
   const paidOrders = orders.filter(
-    (o) =>
+    (o: any) =>
       o.status === "paid" ||
       o.transactionStatus === "success"
   );
 
-  const [chart,setChart]=useState([]);
+  const [chart, setChart] = useState<any[]>([]);
 
 useEffect(()=>{
 
@@ -52,7 +52,7 @@ setChart(res.data);
 
 
   const pendingOrders = orders.filter(
-    (o) => o.status === "pending"
+    (o: any) => o.status === "pending"
   );
 
   return (
@@ -159,7 +159,7 @@ setChart(res.data);
                 {
                   new Set(
                     orders.map(
-                      (o) => o.userId
+                      (o: any) => o.userId
                     )
                   ).size
                 }
@@ -272,7 +272,7 @@ setChart(res.data);
             {orders
               .slice(-5)
               .reverse()
-              .map((order) => (
+              .map((order: any) => (
 
                 <div
                   key={order.id}

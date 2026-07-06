@@ -139,7 +139,7 @@ const Admin = () => {
 
   const totalRevenue =
     orders.reduce(
-      (acc, order) =>
+      (acc: number, order: any) =>
         acc + order.total,
       0
     )
@@ -332,7 +332,7 @@ const Admin = () => {
 
           <div className="space-y-6">
 
-            {foods.map((food) => (
+            {foods.map((food: any) => (
 
               <div
                 key={food.id}

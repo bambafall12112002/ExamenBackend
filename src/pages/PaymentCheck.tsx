@@ -7,9 +7,9 @@ const PaymentCheck = () => {
 
   const navigate = useNavigate();
 
-  const [message, setMessage] = useState(
-    "Vérification du paiement..."
-  );
+  const [message] = useState(
+  "Vérification du paiement..."
+);
 
   useEffect(() => {
     if (!orderId) return;

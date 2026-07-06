@@ -25,7 +25,7 @@ const FoodCard = ({
     >
 
       <img
-        src={food.image}
+        src={food.imageUrl}
         alt={food.name}
         className="w-full h-52 object-cover"
       />
@@ -46,7 +46,7 @@ const FoodCard = ({
             {food.price} FCFA
           </span>
 
-          {food.available ? (
+          {!food.soldOut ? (
 
             <button
               onClick={() => {

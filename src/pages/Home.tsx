@@ -2,6 +2,8 @@ import {
   useContext,
 } from "react"
 
+import type { Food } from "../types/food";
+
 import {
   FoodContext,
 } from "../context/FoodContext"
